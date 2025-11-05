@@ -1,6 +1,7 @@
 # Rexult
 
-**TODO: Add description**
+A library for replicating some of the behavior of the [std::result::Result
+type from Rust](https://doc.rust-lang.org/std/result/enum.Result.html).
 
 ## Installation
 
