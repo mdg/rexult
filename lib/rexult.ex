@@ -18,6 +18,9 @@ defmodule Rexult do
   But they normalize the output, so going to stick with it.
   Converting them to any other value will be misleading and leaving them
   as bare :ok or :error will cause match case headaches for callers.
+
+  This would more naturally be called from, but it's an overloaded name, especially
+  with Ecto.Query so this name is less invasive if imported.
   """
   @spec rexult(term()) :: t()
   def rexult(nil), do: {:error, nil}
@@ -133,8 +136,8 @@ defmodule Rexult do
     quote do
       presult = unquote(primary)
 
-      if ok?(presult) do
-        is_result!(unquote(next))
+      if Rexult.ok?(presult) do
+        Rexult.is_result!(unquote(next))
       else
         presult
       end
@@ -145,8 +148,8 @@ defmodule Rexult do
     quote do
       presult = unquote(primary)
 
-      if ok?(presult) do
-        is_result!(unquote(next))
+      if Rexult.ok?(presult) do
+        Rexult.is_result!(unquote(next))
       else
         presult
       end
@@ -162,8 +165,8 @@ defmodule Rexult do
     quote do
       presult = unquote(primary)
 
-      if err?(presult) do
-        is_result!(unquote(alt))
+      if Rexult.err?(presult) do
+        Rexult.is_result!(unquote(alt))
       else
         presult
       end
@@ -174,8 +177,8 @@ defmodule Rexult do
     quote do
       presult = unquote(primary)
 
-      if err?(presult) do
-        is_result!(unquote(alt))
+      if Rexult.err?(presult) do
+        Rexult.is_result!(unquote(alt))
       else
         presult
       end
