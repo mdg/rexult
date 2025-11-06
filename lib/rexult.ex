@@ -99,6 +99,28 @@ defmodule Rexult do
   end
 
   @doc """
+  Take the break wrapper off the result if there is one
+  """
+  def unbreak({:break, {:ok, _} = r}), do: r
+  def unbreak({:break, {:error, _} = r}), do: r
+  def unbreak({:ok, _} = r), do: r
+  def unbreak({:error, _} = r), do: r
+
+  def unbreak({:break, _r}) do
+    raise "invalid break"
+  end
+
+  @doc """
+  Unwrap a result
+  """
+  @spec unwrap!(term()) :: term()
+  def unwrap!(nil), do: raise("unwrap nil")
+  def unwrap!(:error), do: raise("unwrap error atom")
+  def unwrap!({:error, _}), do: raise("unwrap error")
+  def unwrap!({:ok, ok}), do: ok
+  def unwrap!({:break, b}), do: unwrap!(b)
+
+  @doc """
   Check if a value is considered "ok"
   nil, :error or {:error, _} are all not ok. Everything else is ok.
   A break will return false, access it with unbreak
@@ -115,6 +137,48 @@ defmodule Rexult do
   def err?({:error, _}), do: true
   def err?({:ok, _}), do: false
   def err?({:break, _}), do: false
+
+  @doc """
+  Do something if a result is ok
+
+  Return the original result unchanged, no matter what
+  Useful for just reporting success or metrics
+  Peek into a break result
+  """
+  def on_ok(result, ok_f) do
+    case unbreak(result) do
+      {:ok, val} ->
+        # call the ok function on a valid value
+        ok_f.(val)
+
+      {:error, _err} ->
+        # do nothing for error
+        nil
+    end
+
+    result
+  end
+
+  @doc """
+  Do something if a result is an error
+
+  Return the original result unchanged, no matter what
+  Useful for just reporting errors
+  Peek into break result
+  """
+  def on_err(result, err_f) do
+    case unbreak(result) do
+      {:error, err} ->
+        # call the error function on the error
+        err_f.(err)
+
+      {:ok, _ok} ->
+        # ok, so do nothing
+        nil
+    end
+
+    result
+  end
 
   @doc """
   Assert that the value is already a result
