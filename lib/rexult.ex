@@ -139,6 +139,44 @@ defmodule Rexult do
   def err?({:break, _}), do: false
 
   @doc """
+  Do one thing and if it was successful, do another thing
+  """
+  @spec ok_and_then(any(), fun()) :: t()
+  def ok_and_then(first, second) do
+    case first do
+      {:ok, ok} ->
+        second.(ok)
+        |> is_result!()
+
+      {:error, _} = err ->
+        err
+
+      {:break, _} = b ->
+        b
+    end
+  end
+
+  @doc """
+  If a result is an error, do a different thing
+
+  A break result falls through
+  """
+  @spec ok_or_else(any(), fun()) :: t()
+  def ok_or_else(primary, else_f) do
+    case primary do
+      {:ok, _} = r ->
+        r
+
+      {:error, err} ->
+        else_f.(err)
+        |> is_result!()
+
+      {:break, _} = b ->
+        b
+    end
+  end
+
+  @doc """
   Do something if a result is ok
 
   Return the original result unchanged, no matter what
