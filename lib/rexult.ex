@@ -248,4 +248,39 @@ defmodule Rexult do
       end
     end
   end
+
+  @doc """
+  Get the thing if it was successful, else get a different thing
+  """
+  defmacro unwrap_or(primary, do: alt) do
+    quote do
+      presult =
+        unquote(primary)
+        |> unbreak()
+
+      case presult do
+        {:ok, r} ->
+          r
+
+        {:error, _} ->
+          unquote(alt)
+      end
+    end
+  end
+
+  defmacro unwrap_or(primary, alt) do
+    quote do
+      presult =
+        unquote(primary)
+        |> unbreak()
+
+      case presult do
+        {:ok, r} ->
+          r
+
+        {:error, _} ->
+          unquote(alt)
+      end
+    end
+  end
 end
