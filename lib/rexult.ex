@@ -114,11 +114,21 @@ defmodule Rexult do
   Unwrap a result
   """
   @spec unwrap!(term()) :: term()
+  def unwrap!({:ok, ok}), do: ok
   def unwrap!(nil), do: raise("unwrap nil")
   def unwrap!(:error), do: raise("unwrap error atom")
   def unwrap!({:error, _}), do: raise("unwrap error")
-  def unwrap!({:ok, ok}), do: ok
   def unwrap!({:break, b}), do: unwrap!(b)
+
+  @doc """
+  Unwrap an err result
+  """
+  @spec unwrap_err!(term()) :: term()
+  def unwrap_err!({:error, err}), do: err
+  def unwrap_err!(nil), do: raise("unwrap_err nil")
+  def unwrap_err!({:ok, _}), do: raise("unwrap_err ok")
+  def unwrap_err!(:error), do: raise("unwrap_err error atom")
+  def unwrap_err!({:break, b}), do: unwrap_err!(b)
 
   @doc """
   Check if a value is considered "ok"
@@ -216,6 +226,34 @@ defmodule Rexult do
     end
 
     result
+  end
+
+  @doc """
+  Given a list of results, keep only those that are ok
+  """
+  def filter_ok(results) do
+    Enum.filter(results, &ok?/1)
+    |> Enum.map(&unwrap!/1)
+  end
+
+  @doc """
+  Given a list of results, keep only those that are err
+  """
+  def filter_err(results) do
+    Enum.filter(results, &err?/1)
+    |> Enum.map(&unwrap_err!/1)
+  end
+
+  @doc """
+  Given a list of results, find an error if there is one
+
+  Else wrap the results as an ok result
+  """
+  def find_err(results) do
+    case Enum.find(results, &err?/1) do
+      {:error, _} = e -> e
+      nil -> filter_ok(results) |> ok!()
+    end
   end
 
   @doc """
