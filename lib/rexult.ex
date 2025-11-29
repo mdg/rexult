@@ -195,19 +195,8 @@ defmodule Rexult do
   def map_ok(result, ok_f) do
     case result do
       {:ok, r} ->
-        case ok_f.(r) do
-          {:ok, _r2} ->
-            raise "map function should not return ok"
-
-          {:error, _r2} ->
-            raise "map function should not return error"
-
-          {:break, _} ->
-            raise "map function should not return break"
-
-          r2 ->
-            {:ok, r2}
-        end
+        ok_f.(r)
+        |> ok!()
 
       {:error, _} = e ->
         e
@@ -229,19 +218,8 @@ defmodule Rexult do
         ok
 
       {:error, err} ->
-        case err_f.(err) do
-          {:ok, _r2} ->
-            raise "map function should not return ok"
-
-          {:error, _r2} ->
-            raise "map function should not return error"
-
-          {:break, _} ->
-            raise "map function should not return break"
-
-          err2 ->
-            {:error, err2}
-        end
+        err_f.(err)
+        |> err!()
 
       {:break, _} = b ->
         b
