@@ -187,6 +187,37 @@ defmodule Rexult do
   end
 
   @doc """
+  Modify a result value to another value
+
+  Skip if the result is a break
+  The ok_f function should not return an ok tuple
+  """
+  def map_ok(result, ok_f) do
+    case result do
+      {:ok, r} ->
+        case ok_f.(r) do
+          {:ok, _r2} ->
+            raise "map function should not return ok"
+
+          {:error, _r2} ->
+            raise "map function should not return error"
+
+          {:break, _} ->
+            raise "map function should not return break"
+
+          r2 ->
+            {:ok, r2}
+        end
+
+      {:error, _} = e ->
+        e
+
+      {:break, _} = b ->
+        b
+    end
+  end
+
+  @doc """
   Do something if a result is ok
 
   Return the original result unchanged, no matter what
