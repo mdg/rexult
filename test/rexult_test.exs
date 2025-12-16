@@ -1,69 +1,87 @@
 defmodule RexultTest do
   use ExUnit.Case
   doctest Rexult
+  import Rexult
 
-  describe "is_result!/1" do
+  describe "is_rexult!/1" do
     test "returns ok result unchanged" do
       result = {:ok, "value"}
-      assert Rexult.is_result!(result) == result
+      assert is_rexult!(result) == result
     end
 
     test "returns error result unchanged" do
       result = {:error, "reason"}
-      assert Rexult.is_result!(result) == result
+      assert is_rexult!(result) == result
     end
 
     test "returns break result unchanged" do
       result = {:break, {:ok, "value"}}
-      assert Rexult.is_result!(result) == result
+      assert is_rexult!(result) == result
     end
 
     test "raises for non-result values" do
       assert_raise RuntimeError, "is not result", fn ->
-        Rexult.is_result!("not a result")
+        is_rexult!("not a result")
       end
 
       assert_raise RuntimeError, "is not result", fn ->
-        Rexult.is_result!(42)
+        is_rexult!(42)
       end
 
       assert_raise RuntimeError, "is not result", fn ->
-        Rexult.is_result!(nil)
+        is_rexult!(nil)
       end
 
       assert_raise RuntimeError, "is not result", fn ->
-        Rexult.is_result!(:ok)
+        is_rexult!(:ok)
       end
 
       assert_raise RuntimeError, "is not result", fn ->
-        Rexult.is_result!(:error)
+        is_rexult!(:error)
       end
 
       assert_raise RuntimeError, "is not result", fn ->
-        Rexult.is_result!([1, 2, 3])
+        is_rexult!([1, 2, 3])
       end
 
       assert_raise RuntimeError, "is not result", fn ->
-        Rexult.is_result!(%{key: "value"})
+        is_rexult!(%{key: "value"})
       end
     end
   end
 
   describe "ok?/1" do
     test "returns true for ok tuples" do
-      assert Rexult.ok?({:ok, "value"}) == true
+      assert ok?({:ok, "value"}) == true
     end
 
     test "returns false for error tuples" do
-      assert Rexult.ok?({:error, "reason"}) == false
+      assert ok?({:error, "reason"}) == false
     end
 
     test "returns false for break with ok" do
-      assert Rexult.ok?({:break, {:ok, "value"}}) == false
+      assert ok?({:break, {:ok, "value"}}) == false
     end
 
     test "returns false for break with error" do
-      assert Rexult.ok?({:break, {:error, "reason"}}) == false
+      assert ok?({:break, {:error, "reason"}}) == false
+    end
+  end
+
+  describe "ok_and_then/2" do
+    test "chains successful operations" do
+      result = ok_and_then({:ok, 5}, fn x -> {:ok, x * 2} end)
+      assert result == {:ok, 10}
+    end
+
+    test "returns error when first operation fails" do
+      result = ok_and_then({:error, "failed"}, fn x -> {:ok, x * 2} end)
+      assert result == {:error, "failed"}
+    end
+
+    test "passes through break without calling function" do
+      result = ok_and_then({:break, {:ok, 5}}, fn x -> {:ok, x * 2} end)
+      assert result == {:break, {:ok, 5}}
     end
   end
 end

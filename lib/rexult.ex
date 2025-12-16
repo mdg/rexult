@@ -186,18 +186,19 @@ defmodule Rexult do
   Do one thing and if it was successful, do another thing
   """
   @spec ok_and_then(any(), fun()) :: t()
-  def ok_and_then(first, second) do
-    case first do
-      {:ok, ok} ->
-        second.(ok)
-        |> is_result!()
+  def ok_and_then(first, second)
 
-      {:error, _} = err ->
-        err
+  def ok_and_then({:ok, ok}, second) do
+    second.(ok)
+    |> is_rexult!()
+  end
 
-      {:break, _} = b ->
-        b
-    end
+  def ok_and_then({:error, _} = err, _second) do
+    err
+  end
+
+  def ok_and_then({:break, _} = b, _second) do
+    b
   end
 
   @doc """
@@ -213,7 +214,7 @@ defmodule Rexult do
 
       {:error, err} ->
         else_f.(err)
-        |> is_result!()
+        |> is_rexult!()
 
       {:break, _} = b ->
         b
@@ -268,7 +269,7 @@ defmodule Rexult do
   Peek into a break result
   """
   def on_ok(result, ok_f) do
-    case unbreak(result) do
+    case unbreak!(result) do
       {:ok, val} ->
         # call the ok function on a valid value
         ok_f.(val)
@@ -289,7 +290,7 @@ defmodule Rexult do
   Peek into break result
   """
   def on_err(result, err_f) do
-    case unbreak(result) do
+    case unbreak!(result) do
       {:error, err} ->
         # call the error function on the error
         err_f.(err)
@@ -333,11 +334,11 @@ defmodule Rexult do
   @doc """
   Assert that the value is already a result
   """
-  def is_result!({:ok, _} = r), do: r
-  def is_result!({:error, _} = r), do: r
-  def is_result!({:break, _} = r), do: r
+  def is_rexult!({:ok, _} = r), do: r
+  def is_rexult!({:error, _} = r), do: r
+  def is_rexult!({:break, _} = r), do: r
 
-  def is_result!(_) do
+  def is_rexult!(_) do
     raise "is not result"
   end
 
@@ -351,7 +352,7 @@ defmodule Rexult do
       presult = unquote(primary)
 
       if Rexult.ok?(presult) do
-        Rexult.is_result!(unquote(next))
+        Rexult.is_rexult!(unquote(next))
       else
         presult
       end
@@ -363,7 +364,7 @@ defmodule Rexult do
       presult = unquote(primary)
 
       if Rexult.ok?(presult) do
-        Rexult.is_result!(unquote(next))
+        Rexult.is_rexult!(unquote(next))
       else
         presult
       end
@@ -380,7 +381,7 @@ defmodule Rexult do
       presult = unquote(primary)
 
       if Rexult.err?(presult) do
-        Rexult.is_result!(unquote(alt))
+        Rexult.is_rexult!(unquote(alt))
       else
         presult
       end
@@ -392,7 +393,7 @@ defmodule Rexult do
       presult = unquote(primary)
 
       if Rexult.err?(presult) do
-        Rexult.is_result!(unquote(alt))
+        Rexult.is_rexult!(unquote(alt))
       else
         presult
       end
@@ -406,7 +407,7 @@ defmodule Rexult do
     quote do
       presult =
         unquote(primary)
-        |> unbreak()
+        |> unbreak!()
 
       case presult do
         {:ok, r} ->
@@ -422,7 +423,7 @@ defmodule Rexult do
     quote do
       presult =
         unquote(primary)
-        |> unbreak()
+        |> unbreak!()
 
       case presult do
         {:ok, r} ->
