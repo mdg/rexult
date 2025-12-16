@@ -220,7 +220,7 @@ defmodule Rexult do
   """
   def map_err(result, err_f) do
     case result do
-      {:ok, _} = ok->
+      {:ok, _} = ok ->
         ok
 
       {:error, err} ->
