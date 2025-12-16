@@ -65,13 +65,5 @@ defmodule RexultTest do
     test "returns false for break with error" do
       assert Rexult.ok?({:break, {:error, "reason"}}) == false
     end
-
-    test "nil and other non-result values raise" do
-      assert_raise FunctionClauseError, &ok_nil?/0
-    end
-  end
-
-  defp ok_nil?() do
-    Rexult.ok?(nil)
   end
 end

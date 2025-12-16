@@ -25,29 +25,46 @@ defmodule Rexult do
   Converting them to any other value will be misleading and leaving them
   as bare :ok or :error will cause match case headaches for callers.
 
+  Will raise if an existing result is passed.
+
   This would more naturally be called from, but it's an overloaded name, especially
   with Ecto.Query so this name is less invasive if imported.
   """
-  @spec rexult(term()) :: t()
-  def rexult(nil), do: {:error, nil}
-  def rexult(:error), do: {:error, :error}
-  def rexult(:ok), do: {:ok, :ok}
+  @spec rexult!(term()) :: t()
+  def rexult!(nil), do: {:error, nil}
+  def rexult!(:error), do: {:error, :error}
+  def rexult!(:ok), do: {:ok, :ok}
 
-  def rexult({:error, _} = _err) do
+  def rexult!({ok, a, b}) when ok in [:ok, :error] do
+    # valid case for 3 tuple result, wrap 2nd & 3rd items as a 2 tuple
+    {ok, {a, b}}
+  end
+
+  def rexult!({:error, _} = _err) do
     raise "result is error"
   end
 
-  def rexult({:ok, _} = _ok) do
+  def rexult!({:ok, _} = _ok) do
     raise "result is ok"
   end
 
-  def rexult({:break, _} = _b) do
+  def rexult!({:break, _} = _b) do
     raise "result is break"
   end
 
-  def rexult(unwrapped_ok), do: {:ok, unwrapped_ok}
+  def rexult!(unwrapped_ok), do: {:ok, unwrapped_ok}
 
+  @doc """
+  Construct an ok tuple
+
+  Raise if the value passed in is already a rexult type
+  """
   @spec ok!(any()) :: {:ok, any()}
+  def ok!({:ok, a, b}) do
+    # 3 tuple case is ok
+    {:ok, {a, b}}
+  end
+
   def ok!({:ok, _ok}) do
     raise "result is ok"
   end
@@ -72,6 +89,11 @@ defmodule Rexult do
   Will raise if already a result type
   """
   @spec err!(any()) :: {:err, any()}
+  def err!({:error, a, b}) do
+    # 3 tuple case is ok, wrap as 2 tuple
+    {:error, {a, b}}
+  end
+
   def err!({:error, _err}) do
     raise "result is error"
   end
@@ -106,18 +128,22 @@ defmodule Rexult do
 
   @doc """
   Take the break wrapper off the result if there is one
-  """
-  def unbreak({:break, {:ok, _} = r}), do: r
-  def unbreak({:break, {:error, _} = r}), do: r
-  def unbreak({:ok, _} = r), do: r
-  def unbreak({:error, _} = r), do: r
 
-  def unbreak({:break, _r}) do
+  Raise if it's not a result
+  """
+  def unbreak!({:break, {:ok, _} = r}), do: r
+  def unbreak!({:break, {:error, _} = r}), do: r
+  def unbreak!({:ok, _} = r), do: r
+  def unbreak!({:error, _} = r), do: r
+
+  def unbreak!({:break, _r}) do
     raise "invalid break"
   end
 
   @doc """
-  Unwrap a result
+  Unwrap a result, unbreak if necessary
+
+  Raise if it's not ok
   """
   @spec unwrap!(term()) :: term()
   def unwrap!({:ok, ok}), do: ok
@@ -127,7 +153,9 @@ defmodule Rexult do
   def unwrap!({:break, b}), do: unwrap!(b)
 
   @doc """
-  Unwrap an err result
+  Unwrap an err result, unbreak if necessary
+
+  Raise if it's not an err
   """
   @spec unwrap_err!(term()) :: term()
   def unwrap_err!({:error, err}), do: err
