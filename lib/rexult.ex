@@ -2,10 +2,16 @@ defmodule Rexult do
   @moduledoc """
   Result type library
 
+  ## Description
+
   Philosophy is to be strict on typing and raise errors when inputs
   are unexpected.
 
   The library interface is designed to be required and imported
+
+  ## Reference
+
+  [doc.rust-lang.org/std/result/](https://doc.rust-lang.org/std/result/)
   """
 
   @type t() :: {:ok, any()} | {:error, any()} | {:break, t()}
