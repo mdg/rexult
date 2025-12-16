@@ -142,7 +142,8 @@ defmodule Rexult do
   A break will return false, access it with unbreak
   """
   def ok?({:ok, _}), do: true
-  def ok?(_), do: false
+  def ok?({:error, _}), do: false
+  def ok?({:break, {:ok, _}}), do: false
 
   @doc """
   Check if a value is considered an error
@@ -150,7 +151,8 @@ defmodule Rexult do
   A break will return false, access it with unbreak
   """
   def err?({:error, _}), do: true
-  def err?(_), do: false
+  def err?({:ok, _}), do: false
+  def err?({:break, _}), do: false
 
   @doc """
   Do one thing and if it was successful, do another thing
