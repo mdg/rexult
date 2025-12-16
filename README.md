@@ -11,7 +11,7 @@ by adding `rexult` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:rexult, "~> 0.1.0"}
+    {:rexult, "~> 0.1.0"},
   ]
 end
 ```
