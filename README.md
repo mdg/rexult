@@ -1,7 +1,14 @@
 # Rexult
 
-A library for replicating some of the behavior of the [std::result::Result
-type from Rust](https://doc.rust-lang.org/std/result/enum.Result.html).
+[![CI](https://github.com/mdg/rexult/actions/workflows/elixir.yml/badge.svg)](https://github.com/mdg/rexult/actions/workflows/elixir.yml)
+[![Module Version](https://img.shields.io/hexpm/v/rexult.svg)](https://hex.pm/packages/rexult)
+[![Hex Docs](https://img.shields.io/badge/hex-docs-lightgreen.svg)](https://hexdocs.pm/rexult/Exit.html)
+[![Total Downloads](https://img.shields.io/hexpm/dt/rexult.svg)](https://hex.pm/packages/rexult)
+[![License](https://img.shields.io/hexpm/l/rexult.svg)](https://github.com/mdg/rexult/blob/main/LICENSE)
+[![Last Updated](https://img.shields.io/github/last-commit/mdg/rexult.svg)](https://github.com/mdg/rexult/commits/main)
+
+A library for replicating some of the behavior of the [std::result
+module from Rust](https://doc.rust-lang.org/stable/std/result/)
 
 ## Installation
 
