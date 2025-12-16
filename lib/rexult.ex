@@ -143,7 +143,7 @@ defmodule Rexult do
   """
   def ok?({:ok, _}), do: true
   def ok?({:error, _}), do: false
-  def ok?({:break, {:ok, _}}), do: false
+  def ok?({:break, _}), do: false
 
   @doc """
   Check if a value is considered an error
