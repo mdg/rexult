@@ -84,4 +84,16 @@ defmodule RexultTest do
       assert result == {:break, {:ok, 5}}
     end
   end
+
+  describe "all_ok/1" do
+    test "all values are ok" do
+      result = [ok!(5), ok!("hello")] |> all_ok()
+      assert result == {:ok, [5, "hello"]}
+    end
+
+    test "returns error when there is an error" do
+      result = [ok!(5), ok!("hello"), err!("tacos")] |> all_ok()
+      assert result == {:error, "tacos"}
+    end
+  end
 end

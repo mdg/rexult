@@ -320,14 +320,14 @@ defmodule Rexult do
   end
 
   @doc """
-  Given a list of results, find an error if there is one
+  Given a list of results, ok with list of ok values
 
-  Else wrap the results as an ok result
+  Else return the first error found
   """
-  def find_err(results) do
+  def all_ok(results) do
     case Enum.find(results, &err?/1) do
       {:error, _} = e -> e
-      nil -> filter_ok(results) |> ok!()
+      nil -> Enum.map(results, &unwrap!/1) |> ok!()
     end
   end
 
