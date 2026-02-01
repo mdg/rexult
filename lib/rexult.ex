@@ -150,6 +150,7 @@ defmodule Rexult do
   def unwrap!(nil), do: raise("unwrap nil")
   def unwrap!(:error), do: raise("unwrap error atom")
   def unwrap!({:error, _}), do: raise("unwrap error")
+  def unwrap!({:error, _, _}), do: raise("unwrap error 3")
   def unwrap!({:break, b}), do: unwrap!(b)
 
   @doc """
@@ -159,6 +160,7 @@ defmodule Rexult do
   """
   @spec unwrap_err!(term()) :: term()
   def unwrap_err!({:error, err}), do: err
+  def unwrap_err!({:error, err, e2}), do: {err, e2}
   def unwrap_err!(nil), do: raise("unwrap_err nil")
   def unwrap_err!({:ok, _}), do: raise("unwrap_err ok")
   def unwrap_err!(:error), do: raise("unwrap_err error atom")
