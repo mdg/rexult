@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.2.0
+
+- new features
+  - new rexult function to replace rexult!
+
+- backwards incompatible
+  - remove rexult!
+
 ## v0.1.2
 
 - new features

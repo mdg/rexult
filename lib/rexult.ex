@@ -18,14 +18,54 @@ defmodule Rexult do
   @type t(sub) :: {:ok, sub} | {:error, any()} | {:break, t(sub)}
 
   @doc """
-  Unwrap an ok value into an {:ok, tuple} or return the error in an {:error, tuple}
+  Wrap an ok value into an {:ok, tuple} or return the error in an {:error, tuple}
 
   The cases of :ok -> {:ok, :ok} and :error -> {:error, :error} are a little weird
   But they normalize the output, so going to stick with it.
   Converting them to any other value will be misleading and leaving them
   as bare :ok or :error will cause match case headaches for callers.
 
-  Will raise if an existing result is passed.
+  If an existing rexult is passed, return as-is rather than re-wrap it
+
+  This would more naturally be called from, but it's an overloaded name, especially
+  with Ecto.Query so this name is less invasive if imported.
+  """
+  @spec rexult(term()) :: t()
+  def rexult(nil), do: {:error, nil}
+  def rexult(:error), do: {:error, :error}
+  def rexult(:ok), do: {:ok, :ok}
+
+  def rexult({ok, a, b}) when ok in [:ok, :error] do
+    # valid case for 3 tuple result, wrap 2nd & 3rd items as a 2 tuple
+    {ok, {a, b}}
+  end
+
+  def rexult({:error, _} = err) do
+    # leave error as-is, do not rewrap
+    err
+  end
+
+  def rexult({:ok, _} = ok) do
+    # leave it as-is, do not rewrap
+    ok
+  end
+
+  def rexult({:break, _} = b) do
+    # leave break as-is, do not re-wrap
+    b
+  end
+
+  def rexult(unwrapped_ok), do: {:ok, unwrapped_ok}
+
+  @doc """
+  Wrap a value into an {:ok, tuple} or return the error in an {:error, tuple}
+
+  The cases of :ok -> {:ok, :ok} and :error -> {:error, :error} are a little weird
+  But they normalize the output, so going to stick with it.
+  Converting them to any other value will be misleading and leaving them
+  as bare :ok or :error will cause match case headaches for callers.
+
+  If an existing rexult is passed, will return as-is rather than re-wrap it
 
   This would more naturally be called from, but it's an overloaded name, especially
   with Ecto.Query so this name is less invasive if imported.
