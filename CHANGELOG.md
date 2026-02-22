@@ -5,8 +5,16 @@
 - new features
   - new rexult function to replace rexult!
 
+- fixed
+  - make unwrap! handle 3 tuple error to give better message
+
 - backwards incompatible
   - remove rexult!, use new rexult
+
+## v0.1.3
+
+- backwards incompatible
+  - rename find_err to be all_ok
 
 ## v0.1.2
 
