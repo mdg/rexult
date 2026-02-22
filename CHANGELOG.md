@@ -6,7 +6,7 @@
   - new rexult function to replace rexult!
 
 - backwards incompatible
-  - remove rexult!
+  - remove rexult!, use new rexult
 
 ## v0.1.2
 

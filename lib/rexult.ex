@@ -58,43 +58,6 @@ defmodule Rexult do
   def rexult(unwrapped_ok), do: {:ok, unwrapped_ok}
 
   @doc """
-  Wrap a value into an {:ok, tuple} or return the error in an {:error, tuple}
-
-  The cases of :ok -> {:ok, :ok} and :error -> {:error, :error} are a little weird
-  But they normalize the output, so going to stick with it.
-  Converting them to any other value will be misleading and leaving them
-  as bare :ok or :error will cause match case headaches for callers.
-
-  If an existing rexult is passed, will return as-is rather than re-wrap it
-
-  This would more naturally be called from, but it's an overloaded name, especially
-  with Ecto.Query so this name is less invasive if imported.
-  """
-  @spec rexult!(term()) :: t()
-  def rexult!(nil), do: {:error, nil}
-  def rexult!(:error), do: {:error, :error}
-  def rexult!(:ok), do: {:ok, :ok}
-
-  def rexult!({ok, a, b}) when ok in [:ok, :error] do
-    # valid case for 3 tuple result, wrap 2nd & 3rd items as a 2 tuple
-    {ok, {a, b}}
-  end
-
-  def rexult!({:error, _} = _err) do
-    raise "result is error"
-  end
-
-  def rexult!({:ok, _} = _ok) do
-    raise "result is ok"
-  end
-
-  def rexult!({:break, _} = _b) do
-    raise "result is break"
-  end
-
-  def rexult!(unwrapped_ok), do: {:ok, unwrapped_ok}
-
-  @doc """
   Construct an ok tuple
 
   Raise if the value passed in is already a rexult type
