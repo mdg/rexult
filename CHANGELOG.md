@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.2.1
+
+- new features
+  - new split_ok_err/2 function
+
 ## v0.2.0
 
 - new features

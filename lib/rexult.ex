@@ -325,6 +325,16 @@ defmodule Rexult do
   end
 
   @doc """
+  Split a list of results into those that are ok and those that are errors
+
+  Both lists are always returned, even if they are empty
+  """
+  @spec split_ok_err([t()], any) :: {[t()], [t()]}
+  def split_ok_err(results, f) when is_list(results) do
+    Enum.split_with(results, f)
+  end
+
+  @doc """
   Given a list of results, ok with list of ok values
 
   Else return the first error found
