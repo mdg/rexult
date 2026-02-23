@@ -327,11 +327,15 @@ defmodule Rexult do
   @doc """
   Split a list of results into those that are ok and those that are errors
 
+  The ok values and errors are both unwrapped within their new lists
   Both lists are always returned, even if they are empty
   """
-  @spec split_ok_err([t()], any) :: {[t()], [t()]}
-  def split_ok_err(results, f) when is_list(results) do
-    Enum.split_with(results, f)
+  @spec split_ok_err([t()]) :: {[t()], [t()]}
+  def split_ok_err(results) when is_list(results) do
+    {oks, errs} = Enum.split_with(results, &ok?/1)
+    uoks = Enum.map(oks, &unwrap!/1)
+    uerrs = Enum.map(errs, &unwrap_err!/1)
+    {uoks, uerrs}
   end
 
   @doc """

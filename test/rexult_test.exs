@@ -96,4 +96,33 @@ defmodule RexultTest do
       assert result == {:error, "tacos"}
     end
   end
+
+  describe "split_ok_err/2" do
+    test "splits mixed list of ok and error results" do
+      results = [ok!(1), err!("error1"), ok!(2), err!("error2"), ok!(3)]
+      {oks, errs} = split_ok_err(results)
+      assert oks == [1, 2, 3]
+      assert errs == ["error1", "error2"]
+    end
+
+    test "handles empty list" do
+      {oks, errs} = split_ok_err([])
+      assert oks == []
+      assert errs == []
+    end
+
+    test "handles list with only ok results" do
+      results = [ok!("hello"), ok!(42), ok!(:atom)]
+      {oks, errs} = split_ok_err(results)
+      assert oks == ["hello", 42, :atom]
+      assert errs == []
+    end
+
+    test "handles list with only error results" do
+      results = [err!("fail1"), err!(:timeout), err!(404)]
+      {oks, errs} = split_ok_err(results)
+      assert oks == []
+      assert errs == ["fail1", :timeout, 404]
+    end
+  end
 end
