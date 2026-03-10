@@ -130,6 +130,14 @@ defmodule Rexult do
   end
 
   @doc """
+  Wrap a result in an ok tuple and then a break tuple
+  """
+  @spec break_ok!(t()) :: {:break, {:ok, any()}}
+  def break_ok!(val) do
+    break!(ok!(val))
+  end
+
+  @doc """
   Take the break wrapper off the result if there is one
 
   Raise if it's not a result
