@@ -4,6 +4,9 @@
 
 - new features
   - new split_ok_err/2 function
+  - add unwrap_or_else
+  - add result? and not_result!
+  - add break_ok!
 
 ## v0.2.0
 

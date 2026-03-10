@@ -196,6 +196,14 @@ defmodule Rexult do
   def err?({:break, _}), do: false
 
   @doc """
+  Check if this value is a result
+  """
+  def rexult?({:ok, _}), do: true
+  def rexult?({:error, _}), do: true
+  def rexult?({:break, _}), do: true
+  def rexult?(_), do: false
+
+  @doc """
   Do one thing and if it was successful, do another thing
   """
   @spec ok_and_then(any(), fun()) :: t()
@@ -231,6 +239,26 @@ defmodule Rexult do
 
       {:break, _} = b ->
         b
+    end
+  end
+
+  @doc """
+  If a result is an error, do a different thing
+
+  A break result falls through
+  """
+  @spec unwrap_or_else(any(), fun()) :: t()
+  def unwrap_or_else(primary, else_f) do
+    case primary do
+      {:ok, _} = r ->
+        r
+
+      {:error, err} ->
+        else_f.(err)
+        |> not_rexult!()
+
+      {:break, b} ->
+        unwrap_or_else(b, else_f)
     end
   end
 
@@ -367,6 +395,17 @@ defmodule Rexult do
 
   def is_rexult!(_) do
     raise "is not result"
+  end
+
+  @doc """
+  Assert that the value is not a result
+  """
+  def not_rexult!(val) do
+    if rexult?(val) do
+      raise "is rexult"
+    else
+      val
+    end
   end
 
   ### MACROS
