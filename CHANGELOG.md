@@ -9,6 +9,9 @@
   - add break_ok!
   - make is_rexult! tolerate {:error, a, b} and {:error, a, b, c}
 
+- fixed
+  - ok_or_else was returning {:ok, val} if ok
+
 ## v0.2.0
 
 - new features
