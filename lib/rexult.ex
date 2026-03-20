@@ -250,8 +250,8 @@ defmodule Rexult do
   @spec unwrap_or_else(any(), fun()) :: t()
   def unwrap_or_else(primary, else_f) do
     case primary do
-      {:ok, _} = r ->
-        r
+      {:ok, ok} ->
+        ok
 
       {:error, err} ->
         else_f.(err)
