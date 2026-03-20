@@ -388,8 +388,12 @@ defmodule Rexult do
 
   @doc """
   Assert that the value is already a result
+
+  Convert a 3 tuple error to {:error, {a, b}}
   """
   def is_rexult!({:ok, _} = r), do: r
+  def is_rexult!({:error, a, b}), do: {:error, {a, b}}
+  def is_rexult!({:error, a, b, c}), do: {:error, {a, b, c}}
   def is_rexult!({:error, _} = r), do: r
   def is_rexult!({:break, _} = r), do: r
 

@@ -7,6 +7,7 @@
   - add unwrap_or_else
   - add result? and not_result!
   - add break_ok!
+  - make is_rexult! tolerate {:error, a, b} and {:error, a, b, c}
 
 ## v0.2.0
 
