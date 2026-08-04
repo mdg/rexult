@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.3.0
+
+- backwards incompatible
+  - removed dynamic typechecking
+  - enabled static typechecking for elixir 1.20
+
 ## v0.2.1
 
 - new features

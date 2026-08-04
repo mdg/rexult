@@ -18,36 +18,6 @@ defmodule RexultTest do
       result = {:break, {:ok, "value"}}
       assert is_rexult!(result) == result
     end
-
-    test "raises for non-result values" do
-      assert_raise RuntimeError, "is not result", fn ->
-        is_rexult!("not a result")
-      end
-
-      assert_raise RuntimeError, "is not result", fn ->
-        is_rexult!(42)
-      end
-
-      assert_raise RuntimeError, "is not result", fn ->
-        is_rexult!(nil)
-      end
-
-      assert_raise RuntimeError, "is not result", fn ->
-        is_rexult!(:ok)
-      end
-
-      assert_raise RuntimeError, "is not result", fn ->
-        is_rexult!(:error)
-      end
-
-      assert_raise RuntimeError, "is not result", fn ->
-        is_rexult!([1, 2, 3])
-      end
-
-      assert_raise RuntimeError, "is not result", fn ->
-        is_rexult!(%{key: "value"})
-      end
-    end
   end
 
   describe "ok?/1" do

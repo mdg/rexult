@@ -17,6 +17,16 @@ defmodule Rexult do
   @type t() :: {:ok, any()} | {:error, any()} | {:break, t()}
   @type t(sub) :: {:ok, sub} | {:error, any()} | {:break, t(sub)}
 
+  defguard is_ok(r) when is_tuple(r) and tuple_size(r) == 2 and elem(r, 0) == :ok
+
+  defguard is_err(r) when is_tuple(r) and tuple_size(r) == 2 and elem(r, 0) == :error
+
+  defguard is_break(r) when is_tuple(r) and tuple_size(r) == 2 and elem(r, 0) == :break
+
+  defguard is_ok_err(r) when is_ok(r) or is_err(r)
+
+  defguard is_rexult(r) when is_ok(r) or is_err(r) or is_break(r)
+
   @doc """
   Wrap an ok value into an {:ok, tuple} or return the error in an {:error, tuple}
 
@@ -35,27 +45,43 @@ defmodule Rexult do
   def rexult(:error), do: {:error, :error}
   def rexult(:ok), do: {:ok, :ok}
 
-  def rexult({ok, a, b}) when ok in [:ok, :error] do
+  def rexult({ok, a, b}) when ok in [:ok, :error] and not is_rexult(a) and not is_rexult(b) do
     # valid case for 3 tuple result, wrap 2nd & 3rd items as a 2 tuple
     {ok, {a, b}}
   end
 
-  def rexult({:error, _} = err) do
-    # leave error as-is, do not rewrap
-    err
+  def rexult({:error, a, b, c}) when not is_rexult(a) and not is_rexult(b) and not is_rexult(c) do
+    # 4 tuple case is ok, wrap as 2 tuple
+    {:error, {a, b, c}}
   end
 
-  def rexult({:ok, _} = ok) do
-    # leave it as-is, do not rewrap
-    ok
+  def rexult({ok, val} = r) when ok in [:ok, :error] and not is_rexult(val) do
+    # leave ok or error as-is, do not rewrap
+    r
   end
 
-  def rexult({:break, _} = b) do
+  def rexult({:break, r} = b) when is_ok_err(r) do
     # leave break as-is, do not re-wrap
     b
   end
 
-  def rexult(unwrapped_ok), do: {:ok, unwrapped_ok}
+  def rexult(unwrapped_ok) when not is_rexult(unwrapped_ok) do
+    {:ok, unwrapped_ok}
+  end
+
+  @doc """
+  Assert that the value is already a result
+
+  Auto-convert a 3 or 4 tuple error to {:error, {a, b}}
+  """
+  def rexult!({:error, a, b}), do: {:error, {a, b}}
+  def rexult!({:error, a, b, c}), do: {:error, {a, b, c}}
+  def rexult!(r) when is_rexult(r), do: r
+
+  @doc """
+  Assert that the value is not a result
+  """
+  def not_rexult!(val) when not is_rexult(val), do: val
 
   @doc """
   Construct an ok tuple
@@ -63,28 +89,7 @@ defmodule Rexult do
   Raise if the value passed in is already a rexult type
   """
   @spec ok!(any()) :: {:ok, any()}
-  def ok!({:ok, a, b}) do
-    # 3 tuple case is ok
-    {:ok, {a, b}}
-  end
-
-  def ok!({:ok, _ok}) do
-    raise "result is ok"
-  end
-
-  def ok!({:error, _err}) do
-    raise "error result not ok"
-  end
-
-  def ok!(:error) do
-    raise "error not ok"
-  end
-
-  def ok!({:break, _b}) do
-    raise "break result not ok"
-  end
-
-  def ok!(r), do: {:ok, r}
+  def ok!(r) when not is_rexult(r), do: {:ok, r}
 
   @doc """
   Wrap a non-result in an error tuple
@@ -92,28 +97,9 @@ defmodule Rexult do
   Will raise if already a result type
   """
   @spec err!(any()) :: {:err, any()}
-  def err!({:error, a, b}) do
-    # 3 tuple case is ok, wrap as 2 tuple
-    {:error, {a, b}}
+  def err!(r) when not is_rexult(r) do
+    {:error, r}
   end
-
-  def err!({:error, _err}) do
-    raise "result is error"
-  end
-
-  def err!({:ok, _err}) do
-    raise "ok result is not error"
-  end
-
-  def err!(:ok) do
-    raise "ok is not error"
-  end
-
-  def err!({:break, _b}) do
-    raise "break result not error"
-  end
-
-  def err!(r), do: {:error, r}
 
   @doc """
   Wrap a result in a break tuple
@@ -121,13 +107,9 @@ defmodule Rexult do
   Breaks do not nest, max one level. Figure it out.
   """
   @spec break!(t()) :: {:break, any()}
-  def break!({:break, _} = r), do: r
-  def break!({:ok, _} = r), do: {:break, r}
-  def break!({:error, _} = r), do: {:break, r}
-
-  def break!(_r) do
-    raise "break must be result"
-  end
+  def break!({:break, ir} = r) when is_ok_err(ir), do: r
+  def break!({:ok, ok} = r) when not is_rexult(ok), do: {:break, r}
+  def break!({:error, e} = r) when not is_rexult(e), do: {:break, r}
 
   @doc """
   Wrap a result in an ok tuple and then a break tuple
@@ -147,10 +129,6 @@ defmodule Rexult do
   def unbreak!({:ok, _} = r), do: r
   def unbreak!({:error, _} = r), do: r
 
-  def unbreak!({:break, _r}) do
-    raise "invalid break"
-  end
-
   @doc """
   Unwrap a result, unbreak if necessary
 
@@ -158,10 +136,6 @@ defmodule Rexult do
   """
   @spec unwrap!(term()) :: term()
   def unwrap!({:ok, ok}), do: ok
-  def unwrap!(nil), do: raise("unwrap nil")
-  def unwrap!(:error), do: raise("unwrap error atom")
-  def unwrap!({:error, _}), do: raise("unwrap error")
-  def unwrap!({:error, _, _}), do: raise("unwrap error 3")
   def unwrap!({:break, b}), do: unwrap!(b)
 
   @doc """
@@ -172,9 +146,6 @@ defmodule Rexult do
   @spec unwrap_err!(term()) :: term()
   def unwrap_err!({:error, err}), do: err
   def unwrap_err!({:error, err, e2}), do: {err, e2}
-  def unwrap_err!(nil), do: raise("unwrap_err nil")
-  def unwrap_err!({:ok, _}), do: raise("unwrap_err ok")
-  def unwrap_err!(:error), do: raise("unwrap_err error atom")
   def unwrap_err!({:break, b}), do: unwrap_err!(b)
 
   @doc """
@@ -182,26 +153,44 @@ defmodule Rexult do
   nil, :error or {:error, _} are all not ok. Everything else is ok.
   A break will return false, access it with unbreak
   """
-  def ok?({:ok, _}), do: true
-  def ok?({:error, _}), do: false
-  def ok?({:break, _}), do: false
+  def ok?(r) when is_ok(r) do
+    true
+  end
+
+  def ok?(r) when is_err(r) or is_break(r) do
+    false
+  end
 
   @doc """
   Check if a value is considered an error
   nil, :error or {:error, _} are all errors
   A break will return false, access it with unbreak
   """
-  def err?({:error, _}), do: true
-  def err?({:ok, _}), do: false
-  def err?({:break, _}), do: false
+  def err?(r) when is_err(r) do
+    true
+  end
+
+  def err?(r) when is_ok(r) or is_break(r) do
+    false
+  end
+
+  @doc """
+  Check if a value is a break
+  """
+  def break?(r) when is_break(r) do
+    true
+  end
+
+  def break?(r) when is_ok(r) or is_err(r) do
+    false
+  end
 
   @doc """
   Check if this value is a result
   """
-  def rexult?({:ok, _}), do: true
-  def rexult?({:error, _}), do: true
-  def rexult?({:break, _}), do: true
-  def rexult?(_), do: false
+  def rexult?(r) when is_ok(r) or is_err(r) or is_break(r) do
+    true
+  end
 
   @doc """
   Do one thing and if it was successful, do another thing
@@ -209,9 +198,9 @@ defmodule Rexult do
   @spec ok_and_then(any(), fun()) :: t()
   def ok_and_then(first, second)
 
-  def ok_and_then({:ok, ok}, second) do
-    second.(ok)
-    |> is_rexult!()
+  def ok_and_then({:ok, ok}, then_f) when not is_rexult(ok) do
+    then_f.(ok)
+    |> rexult!()
   end
 
   def ok_and_then({:error, _} = err, _second) do
@@ -228,18 +217,19 @@ defmodule Rexult do
   A break result falls through
   """
   @spec ok_or_else(any(), fun()) :: t()
-  def ok_or_else(primary, else_f) do
-    case primary do
-      {:ok, _} = r ->
-        r
+  def ok_or_else(primary, else_f)
 
-      {:error, err} ->
-        else_f.(err)
-        |> is_rexult!()
+  def ok_or_else({:ok, _} = r, _else_f) do
+    r
+  end
 
-      {:break, _} = b ->
-        b
-    end
+  def ok_or_else({:error, err}, else_f) when not is_rexult(err) do
+    else_f.(err)
+    |> rexult!()
+  end
+
+  def ok_or_else({:break, _} = r, _f) do
+    r
   end
 
   @doc """
@@ -248,18 +238,19 @@ defmodule Rexult do
   A break result falls through
   """
   @spec unwrap_or_else(any(), fun()) :: t()
-  def unwrap_or_else(primary, else_f) do
-    case primary do
-      {:ok, ok} ->
-        ok
+  def unwrap_or_else(primary, else_f)
 
-      {:error, err} ->
-        else_f.(err)
-        |> not_rexult!()
+  def unwrap_or_else({:ok, ok}, _else_f) when not is_rexult(ok) do
+    ok
+  end
 
-      {:break, b} ->
-        unwrap_or_else(b, else_f)
-    end
+  def unwrap_or_else({:error, err}, else_f) when not is_rexult(err) do
+    else_f.(err)
+    |> not_rexult!()
+  end
+
+  def unwrap_or_else({:break, b}, else_f) when is_ok_err(b) do
+    unwrap_or_else(b, else_f)
   end
 
   @doc """
@@ -268,18 +259,15 @@ defmodule Rexult do
   Skip if the result is a break
   The ok_f function should not return an ok tuple
   """
-  def map_ok(result, ok_f) do
-    case result do
-      {:ok, r} ->
-        ok_f.(r)
-        |> ok!()
+  def map_ok(result, ok_f)
 
-      {:error, _} = e ->
-        e
+  def map_ok({:ok, r}, ok_f) when not is_rexult(r) do
+    ok_f.(r)
+    |> ok!()
+  end
 
-      {:break, _} = b ->
-        b
-    end
+  def map_ok(r, _ok_f) when is_err(r) or is_break(r) do
+    r
   end
 
   @doc """
@@ -288,18 +276,19 @@ defmodule Rexult do
   Skip if the result is a break
   The ok_f function should not return an ok tuple
   """
-  def map_err(result, err_f) do
-    case result do
-      {:ok, _} = ok ->
-        ok
+  def map_err(result, err_f)
 
-      {:error, err} ->
-        err_f.(err)
-        |> err!()
+  def map_err({:ok, ok} = r, _err_f) when not is_rexult(ok) do
+    r
+  end
 
-      {:break, _} = b ->
-        b
-    end
+  def map_err({:error, e}, err_f) when not is_rexult(e) do
+    err_f.(e)
+    |> err!()
+  end
+
+  def map_err({:break, b} = r, _err_f) when is_ok_err(b) do
+    r
   end
 
   @doc """
@@ -309,7 +298,7 @@ defmodule Rexult do
   Useful for just reporting success or metrics
   Peek into a break result
   """
-  def on_ok(result, ok_f) do
+  def on_ok(result, ok_f) when is_rexult(result) do
     case unbreak!(result) do
       {:ok, val} ->
         # call the ok function on a valid value
@@ -330,7 +319,7 @@ defmodule Rexult do
   Useful for just reporting errors
   Peek into break result
   """
-  def on_err(result, err_f) do
+  def on_err(result, err_f) when is_rexult(result) do
     case unbreak!(result) do
       {:error, err} ->
         # call the error function on the error
@@ -347,7 +336,7 @@ defmodule Rexult do
   @doc """
   Given a list of results, keep only those that are ok
   """
-  def filter_ok(results) do
+  def filter_ok(results) when is_list(results) do
     Enum.filter(results, &ok?/1)
     |> Enum.map(&unwrap!/1)
   end
@@ -355,7 +344,7 @@ defmodule Rexult do
   @doc """
   Given a list of results, keep only those that are err
   """
-  def filter_err(results) do
+  def filter_err(results) when is_list(results) do
     Enum.filter(results, &err?/1)
     |> Enum.map(&unwrap_err!/1)
   end
@@ -379,7 +368,7 @@ defmodule Rexult do
 
   Else return the first error found
   """
-  def all_ok(results) do
+  def all_ok(results) when is_list(results) do
     case Enum.find(results, &err?/1) do
       {:error, _} = e -> e
       nil -> Enum.map(results, &unwrap!/1) |> ok!()
@@ -387,30 +376,9 @@ defmodule Rexult do
   end
 
   @doc """
-  Assert that the value is already a result
-
-  Convert a 3 tuple error to {:error, {a, b}}
+  Deprecated
   """
-  def is_rexult!({:ok, _} = r), do: r
-  def is_rexult!({:error, a, b}), do: {:error, {a, b}}
-  def is_rexult!({:error, a, b, c}), do: {:error, {a, b, c}}
-  def is_rexult!({:error, _} = r), do: r
-  def is_rexult!({:break, _} = r), do: r
-
-  def is_rexult!(_) do
-    raise "is not result"
-  end
-
-  @doc """
-  Assert that the value is not a result
-  """
-  def not_rexult!(val) do
-    if rexult?(val) do
-      raise "is rexult"
-    else
-      val
-    end
-  end
+  def is_rexult!(r), do: rexult!(r)
 
   ### MACROS
 
