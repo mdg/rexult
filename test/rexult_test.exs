@@ -20,6 +20,105 @@ defmodule RexultTest do
     end
   end
 
+  describe "is_ok/1 guard" do
+    test "returns true for ok tuples" do
+      assert is_ok({:ok, "value"})
+    end
+
+    test "returns false for error tuples" do
+      refute is_ok({:error, "reason"})
+    end
+
+    test "returns false for break tuples" do
+      refute is_ok({:break, {:ok, "value"}})
+    end
+
+    test "returns false for non-rexult values" do
+      refute is_ok(:ok)
+      refute is_ok(nil)
+      refute is_ok({:ok, 1, 2})
+    end
+  end
+
+  describe "is_err/1 guard" do
+    test "returns true for error tuples" do
+      assert is_err({:error, "reason"})
+    end
+
+    test "returns false for ok tuples" do
+      refute is_err({:ok, "value"})
+    end
+
+    test "returns false for break tuples" do
+      refute is_err({:break, {:error, "reason"}})
+    end
+
+    test "returns false for non-rexult values" do
+      refute is_err(:error)
+      refute is_err(nil)
+      refute is_err({:error, 1, 2})
+    end
+  end
+
+  describe "is_break/1 guard" do
+    test "returns true for break tuples" do
+      assert is_break({:break, {:ok, "value"}})
+    end
+
+    test "returns false for ok tuples" do
+      refute is_break({:ok, "value"})
+    end
+
+    test "returns false for error tuples" do
+      refute is_break({:error, "reason"})
+    end
+
+    test "returns false for non-rexult values" do
+      refute is_break(:break)
+      refute is_break(nil)
+      refute is_break({:break, 1, 2})
+    end
+  end
+
+  describe "is_ok_err/1 guard" do
+    test "returns true for ok tuples" do
+      assert is_ok_err({:ok, "value"})
+    end
+
+    test "returns true for error tuples" do
+      assert is_ok_err({:error, "reason"})
+    end
+
+    test "returns false for break tuples" do
+      refute is_ok_err({:break, {:ok, "value"}})
+    end
+
+    test "returns false for non-rexult values" do
+      refute is_ok_err(nil)
+      refute is_ok_err(:ok)
+    end
+  end
+
+  describe "is_rexult/1 guard" do
+    test "returns true for ok tuples" do
+      assert is_rexult({:ok, "value"})
+    end
+
+    test "returns true for error tuples" do
+      assert is_rexult({:error, "reason"})
+    end
+
+    test "returns true for break tuples" do
+      assert is_rexult({:break, {:ok, "value"}})
+    end
+
+    test "returns false for non-rexult values" do
+      refute is_rexult(nil)
+      refute is_rexult(:ok)
+      refute is_rexult({:ok, 1, 2})
+    end
+  end
+
   describe "ok?/1" do
     test "returns true for ok tuples" do
       assert ok?({:ok, "value"}) == true
