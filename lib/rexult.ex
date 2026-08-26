@@ -74,6 +74,7 @@ defmodule Rexult do
 
   Auto-convert a 3 or 4 tuple error to {:error, {a, b}}
   """
+  def rexult!(:error), do: {:error, :error}
   def rexult!({:error, a, b}), do: {:error, {a, b}}
   def rexult!({:error, a, b, c}), do: {:error, {a, b, c}}
   def rexult!(r) when is_rexult(r), do: r
@@ -203,6 +204,10 @@ defmodule Rexult do
     |> rexult!()
   end
 
+  def ok_and_then(:error, _second) do
+    {:error, :error}
+  end
+
   def ok_and_then({:error, _} = err, _second) do
     err
   end
@@ -264,6 +269,10 @@ defmodule Rexult do
   def map_ok({:ok, r}, ok_f) when not is_rexult(r) do
     ok_f.(r)
     |> ok!()
+  end
+
+  def map_ok(:error, _ok_f) do
+    {:error, :error}
   end
 
   def map_ok(r, _ok_f) when is_err(r) or is_break(r) do

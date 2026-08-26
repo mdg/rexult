@@ -18,6 +18,10 @@ defmodule RexultTest do
       result = {:break, {:ok, "value"}}
       assert is_rexult!(result) == result
     end
+
+    test "converts bare :error to error tuple" do
+      assert rexult!(:error) == {:error, :error}
+    end
   end
 
   describe "is_ok/1 guard" do
@@ -137,6 +141,16 @@ defmodule RexultTest do
     end
   end
 
+  describe "map_ok/2" do
+    test "maps ok value" do
+      assert map_ok({:ok, 5}, fn x -> x * 2 end) == {:ok, 10}
+    end
+
+    test "normalizes bare :error" do
+      assert map_ok(:error, fn x -> x * 2 end) == {:error, :error}
+    end
+  end
+
   describe "ok_and_then/2" do
     test "chains successful operations" do
       result = ok_and_then({:ok, 5}, fn x -> {:ok, x * 2} end)
@@ -146,6 +160,11 @@ defmodule RexultTest do
     test "returns error when first operation fails" do
       result = ok_and_then({:error, "failed"}, fn x -> {:ok, x * 2} end)
       assert result == {:error, "failed"}
+    end
+
+    test "normalizes bare :error" do
+      result = ok_and_then(:error, fn x -> {:ok, x * 2} end)
+      assert result == {:error, :error}
     end
 
     test "passes through break without calling function" do

@@ -1,5 +1,9 @@
 # Changelog
 
+## next
+
+- be more tolerant of :error and converting to {:error, :error}
+
 ## v0.3.0
 
 - backwards incompatible
