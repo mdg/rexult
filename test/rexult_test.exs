@@ -185,6 +185,22 @@ defmodule RexultTest do
     end
   end
 
+  describe "unwrap!/1" do
+    test "unwraps ok value" do
+      assert unwrap!({:ok, "value"}) == "value"
+    end
+
+    test "unwraps break to inner ok value" do
+      assert unwrap!({:break, {:ok, "value"}}) == "value"
+    end
+
+    test "raises on error" do
+      assert_raise RuntimeError, "cannot unwrap error \"reason\"", fn ->
+        unwrap!({:error, "reason"})
+      end
+    end
+  end
+
   describe "split_ok_err/2" do
     test "splits mixed list of ok and error results" do
       results = [ok!(1), err!("error1"), ok!(2), err!("error2"), ok!(3)]

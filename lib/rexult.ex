@@ -137,7 +137,12 @@ defmodule Rexult do
   """
   @spec unwrap!(term()) :: term()
   def unwrap!({:ok, ok}), do: ok
+
   def unwrap!({:break, b}), do: unwrap!(b)
+
+  def unwrap!({:error, b}) do
+    raise "cannot unwrap error #{inspect(b)}"
+  end
 
   @doc """
   Unwrap an err result, unbreak if necessary
