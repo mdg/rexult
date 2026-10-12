@@ -130,8 +130,8 @@ defmodule Rexult do
   Raise if it's not a result
   """
   def unbreak!({:break, r}) when is_ok_err(r), do: r
-  def unbreak!({:ok, _} = r) when not is_ok_err(r), do: r
-  def unbreak!({:error, _} = r) when is_ok_err(r), do: r
+  def unbreak!({:ok, k} = r) when not is_ok_err(k), do: r
+  def unbreak!({:error, e} = r) when not is_ok_err(e), do: r
 
   @doc """
   Unwrap a result, unbreak if necessary

@@ -201,6 +201,24 @@ defmodule RexultTest do
     end
   end
 
+  describe "unbreak!/1" do
+    test "unbreaks ok" do
+      assert unbreak!({:ok, "value"}) == {:ok, "value"}
+    end
+
+    test "unbreaks err" do
+      assert unbreak!({:error, "value"}) == {:error, "value"}
+    end
+
+    test "unbreak inner ok value" do
+      assert unbreak!({:break, {:ok, "value"}}) == {:ok, "value"}
+    end
+
+    test "unbreak inner error value" do
+      assert unbreak!({:break, {:error, "err"}}) == {:error, "err"}
+    end
+  end
+
   describe "split_ok_err/2" do
     test "splits mixed list of ok and error results" do
       results = [ok!(1), err!("error1"), ok!(2), err!("error2"), ok!(3)]
