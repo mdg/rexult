@@ -17,15 +17,19 @@ defmodule Rexult do
   @type t() :: {:ok, any()} | {:error, any()} | {:break, t()}
   @type t(sub) :: {:ok, sub} | {:error, any()} | {:break, t(sub)}
 
-  defguard is_ok(r) when is_tuple(r) and tuple_size(r) == 2 and elem(r, 0) == :ok
+  defguard _is_ok_err(r) when is_tuple(r) and tuple_size(r) == 2 and elem(r, 0) in [:ok, :err]
 
-  defguard is_err(r) when is_tuple(r) and tuple_size(r) == 2 and elem(r, 0) == :error
+  defguard _is_rexult(r) when is_tuple(r) and tuple_size(r) == 2 and elem(r, 0) in [:ok, :err, :break]
 
-  defguard is_break(r) when is_tuple(r) and tuple_size(r) == 2 and elem(r, 0) == :break
+  defguard is_ok(r) when is_tuple(r) and tuple_size(r) == 2 and elem(r, 0) == :ok and not _is_rexult(elem(r, 1))
+
+  defguard is_err(r) when is_tuple(r) and tuple_size(r) == 2 and elem(r, 0) == :error and not _is_rexult(elem(r, 1))
 
   defguard is_ok_err(r) when is_ok(r) or is_err(r)
 
-  defguard is_rexult(r) when is_ok(r) or is_err(r) or is_break(r)
+  defguard is_break(r) when is_tuple(r) and tuple_size(r) == 2 and elem(r, 0) == :break and is_ok_err(elem(r, 1))
+
+  defguard is_rexult(r) when is_ok_err(r) or is_break(r)
 
   @doc """
   Wrap an ok value into an {:ok, tuple} or return the error in an {:error, tuple}
@@ -125,10 +129,9 @@ defmodule Rexult do
 
   Raise if it's not a result
   """
-  def unbreak!({:break, {:ok, _} = r}), do: r
-  def unbreak!({:break, {:error, _} = r}), do: r
-  def unbreak!({:ok, _} = r), do: r
-  def unbreak!({:error, _} = r), do: r
+  def unbreak!({:break, r}) when is_ok_err(r), do: r
+  def unbreak!({:ok, _} = r) when not is_ok_err(r), do: r
+  def unbreak!({:error, _} = r) when is_ok_err(r), do: r
 
   @doc """
   Unwrap a result, unbreak if necessary

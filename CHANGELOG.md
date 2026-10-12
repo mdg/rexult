@@ -3,6 +3,7 @@
 ## next
 
 - be more tolerant of :error and converting to {:error, :error}
+- make rexult guards check for recursive ok/error tuples
 
 ## v0.3.0
 
