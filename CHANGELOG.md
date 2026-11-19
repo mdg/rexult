@@ -4,6 +4,7 @@
 
 - be more tolerant of :error and converting to {:error, :error}
 - make rexult guards check for recursive ok/error tuples
+- add Maybe module and functions, and_then, and_if, and_both, or_else, or_default
 
 ## v0.3.0
 
