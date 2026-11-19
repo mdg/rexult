@@ -14,6 +14,8 @@ defmodule Rexult do
   [doc.rust-lang.org/std/result/](https://doc.rust-lang.org/std/result/)
   """
 
+  alias __MODULE__.Maybe
+
   @type t() :: {:ok, any()} | {:error, any()} | {:break, t()}
   @type t(sub) :: {:ok, sub} | {:error, any()} | {:break, t(sub)}
 
@@ -489,4 +491,10 @@ defmodule Rexult do
       end
     end
   end
+
+  defdelegate and_then(m, f), to: Maybe
+  defdelegate and_both(m, other, f), to: Maybe
+  defdelegate and_if(m, b, f), to: Maybe
+  defdelegate or_default(m, d), to: Maybe
+  defdelegate or_else(m, f), to: Maybe
 end
